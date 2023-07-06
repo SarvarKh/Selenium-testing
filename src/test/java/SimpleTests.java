@@ -1,34 +1,65 @@
 import org.junit.jupiter.api.*;
 
-public class SimpleTests {
-    @BeforeAll
-    static void beforeClassSetup() {
-        System.out.println("Preparing test class");
-    }
+import java.util.Date;
 
-    @BeforeEach
-    void prepareTest() {
-        System.out.println("@BeforeEach is calling prepareTest()");
-    }
+import static org.junit.jupiter.api.Assertions.*;
+
+/*
++ 1. Create test flow
++ 2. Include dependencies
++ 3. Simple test script
+4. Test scenarios
++	Create task
++	Check all statuses
++	Delete task
++	Create task with date
+5. Best practices
+6. Page Object pattern
+*/
+public class SimpleTests extends UiTest {
+    private String correctTaskName = "Creating automated test";
+    private String initialTaskStatus = "waiting";
+    private String taskStatusInProgress = "in progress";
+    private String taskDate = "13-07-2023";
+    private int estimation = 15;
 
     @Test
     void testSimpleTest() {
-        System.out.println("Test is running");
+        mainPage.createTask(correctTaskName, estimation);
+
+        String actualTaskName = mainPage.getCreatedTaskName();
+        String actualTaskStatus = mainPage.getCreatedTaskStatus();
+        String actualEstimationTime = mainPage.getCreatedTaskEstimationTime();
+
+        assertTrue(mainPage.isTaskCardVisible(), "Card didn't appear");
+        assertEquals(correctTaskName, actualTaskName, String.format("Task name is different from the passed. Actual value: %s", actualTaskName));
+        assertTrue(actualTaskStatus.contains(initialTaskStatus), String.format("The status is different from waiting: %s", actualTaskStatus));
+        assertTrue(actualEstimationTime.contains(String.valueOf(estimation)), String.format("The estimation time is different from %s: %s", estimation, actualEstimationTime));
+    }
+
+    @Test
+    void testCheckAllStatuses() {
+        mainPage.createTask(correctTaskName, estimation);
+        mainPage.startTask();
+
+        String actualTaskStatus = mainPage.getCreatedTaskStatus();
+        assertTrue(actualTaskStatus.contains(taskStatusInProgress), String.format("The status is different from 'in progress'. %s", actualTaskStatus));
     }
 
 
     @Test
-    void testSimpleTest2() {
-        System.out.println("Test 2 is running");
+    void testDeleteTask() {
+        mainPage.createTask(correctTaskName, estimation);
+        mainPage.createTask(correctTaskName, estimation);
+        mainPage.deleteTask();
+
+        assertTrue(mainPage.onlyOneTaskCardVisible(), "There are still 2 cards. One card supposed to be removed");
     }
 
-    @AfterEach
-    void clearTestData() {
-        System.out.println("Clearing up test data");
-    }
+    @Test
+    void testCreateTaskWithDate() {
+        mainPage.createTaskWithDate(correctTaskName, estimation, taskDate);
 
-    @AfterAll
-    static void afterClassTearDown() {
-        System.out.println("Tear down test class");
+        assertTrue(mainPage.isTaskCardDateVisible(), "Card didn't appear");
     }
 }
